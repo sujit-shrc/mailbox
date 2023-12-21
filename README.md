@@ -20,3 +20,72 @@ This Node.js application automates the process of sending polite and colorful au
 - **Promises and Async/Await:** Embraces modern JavaScript standards to write clean and readable code.
 
 - **HTML Email Template:** Customizable HTML templates for creating stylish and colorful email replies.
+
+  ## Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/gmail-auto-reply.git
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   cd gmail-auto-reply
+   npm install
+   ```
+
+3. Set up API credentials:
+
+   - Follow the instructions in the [Google Gmail API documentation](https://developers.google.com/gmail/api/guides) to obtain API credentials.
+   - Save the credentials as `credentials.json` in the project root.
+
+4. Create a `.env` file:
+
+   - Create a `.env` file in the project root.
+   - Add the following environment variables:
+
+     ```env
+     CLIENT_ID=your-client-id
+     CLIENT_SECRET=your-client-secret
+     REDIRECT_URI=your-redirect-uri
+     ```
+
+     Replace the placeholders with your actual credentials.
+
+5. Run the application:
+
+   ```bash
+   npm start
+   ```
+
+   The app will prompt you to authenticate and grant permission to access your Gmail account.
+
+6. The application will start checking for new emails, sending auto-replies, and adding labels at random intervals.
+
+## Customization
+
+- **Auto-Reply Message:** Customize the content of the auto-reply in the `sendReply` function of `emailService.js`.
+
+- **HTML Styling:** Modify the HTML styles in the `sendReply` function to change the appearance of the auto-reply.
+
+## Notes
+
+- Ensure that your Gmail account allows access by enabling "Less secure app access" in your account settings.
+
+- The app runs at random intervals between 45 to 120 seconds to simulate a real-world scenario.
+
+## Areas for Improvement
+
+- Implement error handling and logging to enhance the robustness of the application.
+
+- Explore further customization options for HTML email content.
+
+- Enhance the application to handle more complex scenarios and edge cases.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Feel free to customize this README based on your specific application details and requirements.
