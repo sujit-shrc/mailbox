@@ -6,6 +6,8 @@ dotenv.config();
 
 const SCOPES = ["https://www.googleapis.com/auth/gmail.modify"];
 const TOKEN_PATH = "token.json";
+// code for setting up the google Oauth2 client
+// Setup for authentication through google Oauth2
 
 async function authorize() {
   const oAuth2Client = getOAuthClient();
@@ -54,7 +56,7 @@ async function getNewToken(oAuth2Client) {
     });
   });
 
-  const { tokens } = await oAuth2Client.getToken({ code, prompt: 'consent' });
+  const { tokens } = await oAuth2Client.getToken({ code, prompt: "consent" });
   oAuth2Client.setCredentials(tokens);
 
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));

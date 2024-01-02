@@ -1,19 +1,19 @@
+const { google } = require("googleapis");
+const { authorize } = require("./gmail");
 
-const { google } = require('googleapis');
-const { authorize } = require('./gmail');
-
+// code for reading all unread emails which contains ['inbox'] tags that they will sure messages are unread
 async function processEmails() {
   try {
     const auth = await authorize();
-    const gmail = google.gmail({ version: 'v1', auth });
+    const gmail = google.gmail({ version: "v1", auth });
 
     const response = await gmail.users.messages.list({
-      userId: 'me',
-      labelIds: ['INBOX'],
+      userId: "me",
+      labelIds: ["INBOX"],
     });
 
     if (!response || !response.data || !response.data.messages) {
-      console.error('Error fetching messages. Response structure is invalid.');
+      console.error("Error fetching messages. Response structure is invalid.");
       return [];
     }
 
@@ -24,64 +24,83 @@ async function processEmails() {
         const messageDetails = await getMessageDetails(gmail, message.id);
 
         if (!messageDetails || !messageDetails.payload) {
-          console.error('Invalid message details. Cannot send reply.');
+          console.error("Invalid message details. Cannot send reply.");
           continue; // Skiping to the next message
         }
-        console.log(messageDetails)
+        console.log(messageDetails);
         // Checking if a reply has been sent
-        if (!messageDetails.payload.headers.some(header => header.name === 'In-Reply-To')) {
+        if (
+          !messageDetails.payload.headers.some(
+            (header) => header.name === "In-Reply-To",
+          )
+        ) {
           // Sending a sample reply
-          const replyContent = 'Hi there, I am currently out of the Space and will respond as soon as possible.';
-          await sendReply(gmail, messageDetails.threadId, replyContent, messageDetails);
+          const replyContent =
+            "Hi there, I am currently out of the Space and will respond as soon as possible.";
+          await sendReply(
+            gmail,
+            messageDetails.threadId,
+            replyContent,
+            messageDetails,
+          );
         }
       } catch (error) {
-        console.error('Error processing message:', error.message);
+        console.error("Error processing message:", error.message);
       }
     }
 
     return messages;
   } catch (error) {
-    console.error('Error fetching messages:', error.message);
+    console.error("Error fetching messages:", error.message);
     return [];
   }
 }
 
 async function getMessageDetails(gmail, messageId) {
   const message = await gmail.users.messages.get({
-    userId: 'me',
+    userId: "me",
     id: messageId,
   });
 
   return message.data;
 }
 
-
-async function sendReply(gmail, threadId,replyContent ,messageDetails) {
+async function sendReply(gmail, threadId, replyContent, messageDetails) {
   try {
-    if (!messageDetails || !messageDetails.payload || !messageDetails.payload.headers) {
-      console.error('Invalid message details. Cannot send reply.');
+    if (
+      !messageDetails ||
+      !messageDetails.payload ||
+      !messageDetails.payload.headers
+    ) {
+      console.error("Invalid message details. Cannot send reply.");
       return;
     }
 
-    const fromHeader = messageDetails.payload.headers.find(header => header.name === 'From');
-    const subjectHeader = messageDetails.payload.headers.find(header => header.name === 'Subject');
+    const fromHeader = messageDetails.payload.headers.find(
+      (header) => header.name === "From",
+    );
+    const subjectHeader = messageDetails.payload.headers.find(
+      (header) => header.name === "Subject",
+    );
 
     if (!fromHeader || !subjectHeader) {
-      console.error('Required headers not found. Cannot send reply.');
+      console.error("Required headers not found. Cannot send reply.");
       return;
     }
 
     // Checking if a reply has been sent
-    const replySentHeader = messageDetails.payload.headers.find(header => header.name === 'X-Auto-Reply-Sent');
-    if (replySentHeader && replySentHeader.value === 'true') {
-      console.log('Auto-reply already sent. Skipping.');
+    const replySentHeader = messageDetails.payload.headers.find(
+      (header) => header.name === "X-Auto-Reply-Sent",
+    );
+    if (replySentHeader && replySentHeader.value === "true") {
+      console.log("Auto-reply already sent. Skipping.");
       return;
     }
 
     // Marking the message as replied to avoid repeated replies
     await markMessageAsReplied(gmail, messageDetails.id);
-
-    // Create a HTML email template
+    // this template will helps to sends well customized messageDetails including colors
+    // Html template for the reply
     const htmlContent = `
     <html>
       <head>
@@ -134,45 +153,44 @@ async function sendReply(gmail, threadId,replyContent ,messageDetails) {
       </body>
     </html>
   `;
-  console.log(fromHeader.value)
-  const raw = Buffer.from(
-    `To: ${fromHeader.value}\r\n` +
-    `Subject: Re[Bot]: ${subjectHeader.value}\r\n` +
-    'Content-Type: text/html; charset="UTF-8"\r\n' +
-    '\r\n' +
-    `${htmlContent}\r\n`
-  ).toString('base64');
+    console.log(fromHeader.value);
+    const raw = Buffer.from(
+      `To: ${fromHeader.value}\r\n` +
+        `Subject: Re[Bot]: ${subjectHeader.value}\r\n` +
+        'Content-Type: text/html; charset="UTF-8"\r\n' +
+        "\r\n" +
+        `${htmlContent}\r\n`,
+    ).toString("base64");
 
     // Sending the reply
     try {
       await gmail.users.messages.send({
-        userId: 'me',
+        userId: "me",
         requestBody: {
           raw,
           threadId,
         },
       });
 
-      console.log('Reply sent successfully.');
+      console.log("Reply sent successfully.");
     } catch (error) {
-      console.error('Error sending reply:', error.message);
+      console.error("Error sending reply:", error.message);
     }
   } catch (error) {
-    console.error('Error processing message details:', error.message);
+    console.error("Error processing message details:", error.message);
   }
 }
-
 
 async function markMessageAsReplied(gmail, messageId) {
   // Add a custom header to mark the message as replied
   await gmail.users.messages.modify({
-    userId: 'me',
+    userId: "me",
     id: messageId,
     requestBody: {
-      addLabelIds: ['INBOX'], // You can adjust the label if needed
-      removeLabelIds: ['UNREAD'], // Remove the unread label to mark it as read
+      addLabelIds: ["INBOX"], // You can adjust the label if needed
+      removeLabelIds: ["UNREAD"], // Remove the unread label to mark it as read
       headers: {
-        'X-Auto-Reply-Sent': 'true',
+        "X-Auto-Reply-Sent": "true",
       },
     },
   });
