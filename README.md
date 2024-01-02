@@ -26,13 +26,13 @@ This Node.js application automates the process of sending polite and colorful au
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/gmail-auto-reply.git
+   git clone https://github.com/mnamesujit/mailbox.git
    ```
 
 2. Install dependencies:
 
    ```bash
-   cd gmail-auto-reply
+   cd mailox
    npm install
    ```
 
